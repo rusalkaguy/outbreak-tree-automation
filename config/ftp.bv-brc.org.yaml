@@ -1,0 +1,13 @@
+# YAML
+#
+# ----------------------------------------------------------------------
+# Bulk FNA download from BV-BRC's FTP server
+#
+# We will be downloading {virus_dir}/{familiy}.fna
+#
+# ----------------------------------------------------------------------
+# https://www.bv-brc.org/docs/quick_references/ftp.html
+sftp:
+  server: ftp://ftp.bv-brc.org
+  virus_dir: viruses
+  user: anonymous:guest

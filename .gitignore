@@ -1,0 +1,9 @@
+# MAC OSX
+.DS_Store
+
+# temp files
+.snakemake/
+sequence_cache/
+*~
+
+
