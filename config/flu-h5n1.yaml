@@ -4,4 +4,17 @@
 #
 
 family: Orthomyxoviridae
+subtype: H5N1
 
+# Christian's original code
+# query for
+#     taxon_id=11320 & subtype=H5N1
+# however, we get the same set of genomes if we do
+#     family=Orthomyxoviridae & subtype=H5N1
+#
+# Negarnaviricota; Insthoviricetes; Articulavirales; Orthomyxoviridae; Alphainfluenzavirus; Alphainfluenzavirus influenzae; Influenza A virus
+#   11308 Orthomyxoviridae [family]
+#  197911 Alphainfluenzavirus [genus]
+# 2955291 Alphainfluenzavirus influenzae [species]
+#   11320 Influenza A virus [no rank]
+#taxon_lineage_ids: 11320 

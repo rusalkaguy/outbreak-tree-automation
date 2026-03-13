@@ -1,4 +1,4 @@
-#!/usr/bin/env snakemake
+#!/usr/bin/env snakemake --cores 1 help
 #
 # Framework for automated outbreak tree building
 #
@@ -22,9 +22,6 @@
 #
 # ----------------------------------------------------------------------
 
-# download cache
-SEQ_CACHE="sequence_cache"
-
 # BV-BRC ftp setup
 configfile: "config/ftp.bv-brc.org.yaml"
 
@@ -35,14 +32,24 @@ print("Loaded configs:")
 print("\tSFTP.server=",config['sftp']['server'])
 print("\tFamily=",config['family'])
 
+# download cache
+DATA_CACHE_DIR="bv-brc-cache"
+METADATA_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.txt"
+BULK_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.fna"
 
 localrules: help
 rule help:
     run:
         print("Targets:")
-        print("    test")
+        print("    help")
+        print("    metadata")
         print("    download")
 
+rule all:
+    input:
+        metadata=METADATA_FILE,
+        bulk_fna=BULK_FNA_FILE
+        
 # ----------------------------------------------------------------------
 #
 # try storage.ftp to get remote mtime integrated in the DAG
@@ -60,7 +67,7 @@ rule help:
 # ----------------------------------------------------------------------
 rule clean:
     shell: """
-       rm -rf {SEQ_CACHE}
+       rm -rf {DATA_CACHE_DIR}
     """
     
 # ----------------------------------------------------------------------
@@ -72,11 +79,11 @@ rule clean:
 localrules: download
 rule download:
     input:
-        bulk_fna=f"{SEQ_CACHE}/{config['family']}.fna"
+        bulk_fna=BULK_FNA_FILE
 
 rule bulk_fna_download:
     output:
-        fna_path=f"{SEQ_CACHE}/{config['family']}.fna"
+        fna_path=BULK_FNA_FILE
     params:
         user = config["sftp"]["user"],
         server = config["sftp"]["server"],
@@ -98,3 +105,28 @@ rule bulk_fna_download:
         " --user '{params.user}' "
         # server file
         " '{params.server}/{params.virus_dir}/{params.fna_name}' "
+
+# ----------------------------------------------------------------------
+#
+# Download ALL metadata (CLI)
+#
+# https://www.bv-brc.org/view/Taxonomy/11320#view_tab=genomes&filter=eq(subtype,%22H5N1%22)
+#
+# expect 264,483
+# ----------------------------------------------------------------------
+rule metadata:
+    input: METADATA_FILE
+    
+rule download_family_metadata:
+    output: METADATA_FILE
+    params:
+        family=config['family'],
+        subtype=config['subtype']
+    shell: """
+        p3-all-genomes \
+            --eq 'family,{params.family}' \
+            --eq 'subtype,{params.subtype}' \
+            --eq 'contigs,1' \
+        > {output}
+           """
+    

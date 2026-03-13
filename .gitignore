@@ -3,7 +3,7 @@
 
 # temp files
 .snakemake/
-sequence_cache/
+bv-brc-cache/
 *~
 
 
