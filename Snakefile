@@ -66,7 +66,8 @@ rule clean:
 # ----------------------------------------------------------------------
 # Bulk FNA download
 #
-# @UAB: ~ 1 minu for 3.3G Orthomyxoviridae.fna
+# @ANL: ~ 0m8sec for 3.3G Orthomyxoviridae.fna
+# @UAB: ~ 1m     for 3.3G Orthomyxoviridae.fna
 # ----------------------------------------------------------------------
 localrules: download
 rule download:
@@ -81,8 +82,12 @@ rule bulk_fna_download:
         server = config["sftp"]["server"],
         virus_dir = config["sftp"]["virus_dir"],
         fna_name = f"{config['family']}.fna"
+    # force Snakemake to always try and pull
+    #always_run: True
     shell:
         "curl --ssl-reqd "
+        # complain on failure
+        "  --fail --silent --show-error "
         # conserve server mod date/time
         "  -R "
         # mod date/time check between server and this file
