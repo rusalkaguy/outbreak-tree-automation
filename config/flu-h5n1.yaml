@@ -4,7 +4,9 @@
 #
 
 family: Orthomyxoviridae
-subtype: H5N1
+
+p3_genome_filters: "--eq 'subtype,H5N1' --in 'collection_year,2024,2025,2026' --in 'genome_status,Complete,Partial'"
+
 
 # Christian's original code
 # query for

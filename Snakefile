@@ -124,8 +124,10 @@ rule bulk_fna_faidx:
 # Download ALL metadata (CLI)
 #
 # https://www.bv-brc.org/view/Taxonomy/11320#view_tab=genomes&filter=eq(subtype,%22H5N1%22)
-#
 # expect 264,483
+#
+# https://www.bv-brc.org/view/Taxonomy/11320#view_tab=genomes&filter=and(eq(subtype,%22H5N1%22),or(eq(collection_year,%222024%22),eq(collection_year,%222025%22),eq(collection_year,%222026%22)),or(eq(genome_status,%22Complete%22),eq(genome_status,%22Partial%22)))&defaultColumns=-cds,h5_clade,segment,sra_accession,collection_date&defaultSort=genome_name,segment
+# expect 161,532
 # ----------------------------------------------------------------------
 rule metadata:
     input: METADATA_FILE
@@ -134,13 +136,16 @@ rule download_family_metadata:
     output: METADATA_FILE
     params:
         family=config['family'],
-        subtype=config['subtype']
+        p3_genome_filters=config['p3_genome_filters']
     shell: """
         p3-all-genomes \
             --eq 'family,{params.family}' \
-            --eq 'subtype,{params.subtype}' \
             --eq 'contigs,1' \
-            --attr genbank_accessions,segment \
+            {params.p3_genome_filters} \
+            --attr date_modified,genbank_accessions \
+            --attr segment \
+            --attr genome_length,genome_quality,genome_status \
+            --attr genome_name \
         > {output}
            """
     
