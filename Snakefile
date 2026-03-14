@@ -34,9 +34,14 @@ print("\tFamily=",config['family'])
 
 # download cache
 DATA_CACHE_DIR="bv-brc-cache"
+
 METADATA_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.txt"
+METADATA_COLLAPSED_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.collapsed.txt"
+
 BULK_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.fna"
 BULK_ID_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.genome_id.fna"
+
+GENOMES_MISSING_SEQ=f"{DATA_CACHE_DIR}/BVBRC_genome_id.missing_seq.txt"
 
 localrules: help
 rule help:
@@ -44,12 +49,15 @@ rule help:
         print("Targets:")
         print("    help")
         print("    metadata")
-        print("    download")
+        print("    bulk")
+        print("    missnig")
+        print("    all")
 
 rule all:
     input:
         metadata=METADATA_FILE,
-        bulk_fna=BULK_FNA_FILE
+        bulk_fna=BULK_FNA_FILE,
+        missing_list=GENOMES_MISSING_SEQ
         
 # ----------------------------------------------------------------------
 #
@@ -77,8 +85,8 @@ rule clean:
 # @ANL: ~ 0m8sec for 3.3G Orthomyxoviridae.fna
 # @UAB: ~ 1m     for 3.3G Orthomyxoviridae.fna
 # ----------------------------------------------------------------------
-localrules: download
-rule download:
+localrules: bulk
+rule bulk:
     input:
         bulk_fna=BULK_ID_FNA_FILE
 
@@ -140,7 +148,10 @@ rule bulk_fna_faidx:
 # expect 161,532
 # ----------------------------------------------------------------------
 rule metadata:
-    input: METADATA_FILE
+    input:
+        raw=METADATA_FILE,
+        dedup=METADATA_COLLAPSED_FILE
+
     
 rule download_family_metadata:
     output: METADATA_FILE
@@ -159,3 +170,47 @@ rule download_family_metadata:
         > {output}
            """
     
+#
+# remove duplicate genomes
+#
+# If there are multiple genome_id's for the same genbank_accessions,
+# then remove all but the oldest,
+# and add a column, genome.collapsed_ct, with the original count
+#
+rule dedup_metadata:
+    output:
+        metadata=METADATA_COLLAPSED_FILE
+    input:
+        metadata=METADATA_FILE,
+        script="scripts/collapse_bvbrc_genome_by_accession.py"
+    shell:
+        "{input.script} {input.metadata} {output.metadata}"
+        
+
+# ----------------------------------------------------------------------
+#
+# Download DELTA with CLI
+#
+# list all genomes with metadata and no sequence.
+#
+# download those genomes with the CLI
+#
+# ----------------------------------------------------------------------
+rule missing:
+    input:
+        list=GENOMES_MISSING_SEQ
+        
+rule list_genomes_missing_sequence:
+    output:
+        list=GENOMES_MISSING_SEQ
+    input:
+        metadata=METADATA_COLLAPSED_FILE,
+        bulk_fna_fai_path=f"{BULK_ID_FNA_FILE}.fai"
+    shell:
+        "echo genome_id > {output.list} "
+        " && "
+        "join -v1 "
+        "  <(p3-extract -i {input.metadata} genome_id | tail -n +2 | LC_ALL=C sort) "
+        "  <(cut -f 1 {input.bulk_fna_fai_path} | LC_ALL=C sort) "
+        ">> {output.list}"
+        
