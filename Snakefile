@@ -42,6 +42,7 @@ BULK_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.fna"
 BULK_ID_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.genome_id.fna"
 
 GENOMES_MISSING_SEQ=f"{DATA_CACHE_DIR}/BVBRC_genome_id.missing_seq.txt"
+MISSING_CONTIG_TSV=f"{DATA_CACHE_DIR}/missing_contigs_download.tsv"
 
 localrules: help
 rule help:
@@ -51,13 +52,15 @@ rule help:
         print("    metadata")
         print("    bulk")
         print("    missnig")
+        print("    delta")
         print("    all")
 
 rule all:
     input:
         metadata=METADATA_FILE,
         bulk_fna=BULK_FNA_FILE,
-        missing_list=GENOMES_MISSING_SEQ
+        missing_list=GENOMES_MISSING_SEQ,
+        delta=MISSING_CONTIG_TSV
         
 # ----------------------------------------------------------------------
 #
@@ -147,6 +150,7 @@ rule bulk_fna_faidx:
 # https://www.bv-brc.org/view/Taxonomy/11320#view_tab=genomes&filter=and(eq(subtype,%22H5N1%22),or(eq(collection_year,%222024%22),eq(collection_year,%222025%22),eq(collection_year,%222026%22)),or(eq(genome_status,%22Complete%22),eq(genome_status,%22Partial%22)))&defaultColumns=-cds,h5_clade,segment,sra_accession,collection_date&defaultSort=genome_name,segment
 # expect 161,532
 # ----------------------------------------------------------------------
+
 rule metadata:
     input:
         raw=METADATA_FILE,
@@ -214,3 +218,22 @@ rule list_genomes_missing_sequence:
         "  <(cut -f 1 {input.bulk_fna_fai_path} | LC_ALL=C sort) "
         ">> {output.list}"
         
+rule delta:
+    input:
+        delta=MISSING_CONTIG_TSV
+
+rule pull_missing_contigs_via_cli:
+    output:
+        tsv=MISSING_CONTIG_TSV
+    input:
+        ids=GENOMES_MISSING_SEQ,
+        p3_echo_stdin="scripts/p3-echo-stdin.awk"
+    threads: 5
+    shell: r"""
+        set -euo pipefail
+
+        tail -n +2 {input.ids} \
+          | parallel -j {threads} -k --pipe -N 500 \
+            '{input.p3_echo_stdin} -v title=genome_id | p3-get-genome-contigs --col genome_id --attr sequence' \
+          > {output.tsv}
+    """    
