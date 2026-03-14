@@ -23,7 +23,7 @@
 # ----------------------------------------------------------------------
 
 # BV-BRC ftp setup
-configfile: "config/ftp.bv-brc.org.yaml"
+configfile: "config/bv-brc.org.yaml"
 
 # FLU outbreak config
 configfile: "config/flu-h5n1.yaml"
@@ -106,6 +106,19 @@ rule bulk_fna_download:
         # server file
         " '{params.server}/{params.virus_dir}/{params.fna_name}' "
 
+rule bulk_fna_faidx:
+    output:
+        fai_path=f"{BULK_FNA_FILE}.fai",
+        err_path=f"{BULK_FNA_FILE}.errors"
+    input:
+        fna_path=BULK_FNA_FILE
+    params:
+        sif=config['sif']
+    shell:
+        "singularity exec {params.sif} samtools faidx {input.fna_path} 2>{output.err_path} "
+        " && "
+        "wc -l {output.err_path} "
+        
 # ----------------------------------------------------------------------
 #
 # Download ALL metadata (CLI)
@@ -127,6 +140,7 @@ rule download_family_metadata:
             --eq 'family,{params.family}' \
             --eq 'subtype,{params.subtype}' \
             --eq 'contigs,1' \
+            --attr genbank_accessions,segment \
         > {output}
            """
     
