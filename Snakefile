@@ -36,6 +36,7 @@ print("\tFamily=",config['family'])
 DATA_CACHE_DIR="bv-brc-cache"
 METADATA_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.txt"
 BULK_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.fna"
+BULK_ID_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.genome_id.fna"
 
 localrules: help
 rule help:
@@ -79,7 +80,7 @@ rule clean:
 localrules: download
 rule download:
     input:
-        bulk_fna=BULK_FNA_FILE
+        bulk_fna=BULK_ID_FNA_FILE
 
 rule bulk_fna_download:
     output:
@@ -106,12 +107,21 @@ rule bulk_fna_download:
         # server file
         " '{params.server}/{params.virus_dir}/{params.fna_name}' "
 
+rule re_id_bulk_fna:
+    output:
+        fna_path=BULK_ID_FNA_FILE
+    input:
+        fna_path=BULK_FNA_FILE,
+        script="scripts/fasta_convert_to_genome_id.gawk"
+    shell:
+        "gawk -f {input.script} {input.fna_path} > {output.fna_path}"
+        
 rule bulk_fna_faidx:
     output:
-        fai_path=f"{BULK_FNA_FILE}.fai",
-        err_path=f"{BULK_FNA_FILE}.errors"
+        fai_path=f"{BULK_ID_FNA_FILE}.fai",
+        err_path=f"{BULK_ID_FNA_FILE}.errors"
     input:
-        fna_path=BULK_FNA_FILE
+        fna_path=BULK_ID_FNA_FILE
     params:
         sif=config['sif']
     shell:
