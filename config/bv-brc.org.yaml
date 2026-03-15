@@ -13,5 +13,5 @@ sftp:
   user: anonymous:guest
 
 # standard NGS tools Singularity image
-sif: /vol/patric3/production/containers/ubuntu-dev-160-build12-2.sif
+sif: singularity exec /vol/patric3/production/containers/ubuntu-dev-160-build12-2.sif
 
