@@ -136,7 +136,7 @@ rule bulk_fna_faidx:
     params:
         sif=config['sif']
     shell:
-        "singularity exec {params.sif} samtools faidx {input.fna_path} 2>{output.err_path} "
+        "{params.sif} samtools faidx {input.fna_path} 2>{output.err_path} "
         " && "
         "wc -l {output.err_path} "
         
@@ -214,8 +214,8 @@ rule list_genomes_missing_sequence:
         "echo genome_id > {output.list} "
         " && "
         "join -v1 "
-        "  <(p3-extract -i {input.metadata} genome_id | tail -n +2 | LC_ALL=C sort) "
-        "  <(cut -f 1 {input.bulk_fna_fai_path} | LC_ALL=C sort) "
+        "  <(p3-extract -i {input.metadata} genome_id | tail -n +2 | sort) "
+        "  <(cut -f 1 {input.bulk_fna_fai_path} | sort) "
         ">> {output.list}"
         
 rule delta:
