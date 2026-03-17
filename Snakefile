@@ -22,15 +22,23 @@
 #
 # ----------------------------------------------------------------------
 
-# ANL.gov environment setup
-configfile: "config/cels.anl.gov.yaml"
+# environment setup
+# run at cels.anl.gov
+ENV_CONFIG="config/cels.anl.gov.yaml" 
+configfile: ENV_CONFIG
 
-# FLU H5N1 outbreak config - segmented virus!
-configfile: "config/flu-h5n1.yaml"
+# taxonomy & tree parameters
+# Flu (Orthomyxoviridae) [segmented virus!]
+TAX_CONFIG="config/flu-h5n1.yaml"
+configfile: TAX_CONFIG
 
 print("Loaded configs:")
-print("\tFTP.server=",config['ftp']['server'])
-print("\tFamily=",config['family'])
+print("    # RUNTIME ENV ------")
+print("    FTP.server=",f"{config['ftp']['user']}@{config['ftp']['server']}:/{config['ftp']['virus_dir']}")
+print("    sif=",config['sif'])
+print("    # TAXONOMY ---------")
+print("    Family=",config['family'])
+print("    p3_genome_filters=",config['p3_genome_filters'])
 
 # download cache
 DATA_CACHE_DIR="bv-brc-cache"
@@ -50,11 +58,11 @@ localrules: help
 rule help:
     run:
         print("Targets:")
-        print("    help")
-        print("    metadata")
-        print("    bulk")
-        print("    missnig")
-        print("    delta")
+        print("    help - list targets")
+        print("    metadata - CLI download genome list/metadata")
+        print("    bulk - ftp bulk sequence download")
+        print("    missing - build list of missing sequences")
+        print("    delta - CLI download of missing sequences")
         print("    all")
 
 rule all:
