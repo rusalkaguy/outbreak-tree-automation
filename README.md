@@ -17,13 +17,17 @@ To Run on a CELS machine at anl.gov:
 # set up environment
 source /vol/patric3/cli/user-env.sh
 
-# ~30 minute runtime for config/flu-h5n1.yaml
-#   family=Orthomyxoviridae
-#   subtype=H5N1
-#   collection_year=[2024,2025,2026]
-#   genome_status=[Complete,Partial]
-#   contigs=1
+# clean caches and outputs
+snakemake --cores 1 clean
 
+# downlaod and build
+#   ~30 minute runtime for config/flu-h5n1.yaml
+#   ./config/flu-h5n1.yaml
+#       family=Orthomyxoviridae
+#       subtype=H5N1
+#       collection_year=[2024,2025,2026]
+#       genome_status=[Complete,Partial]
+#       contigs=1
 snakemake --rerun-incomplete --cores 10 --printshellcmd all
 ```
 ## Configuration
