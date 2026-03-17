@@ -8,8 +8,8 @@
 #
 # Full Protocol:
 #   pull metatdata list of genome
-#   pull latest sequence dumps from sftp
-#   identify genomes missing from sftp-seq-dumps
+#   pull latest sequence dumps from ftp
+#   identify genomes missing from ftp-seq-dumps
 #   pull missing genomes via CLI
 #   Build fasta
 #   Align fasta -> MSA
@@ -22,14 +22,14 @@
 #
 # ----------------------------------------------------------------------
 
-# BV-BRC ftp setup
-configfile: "config/bv-brc.org.yaml"
+# ANL.gov environment setup
+configfile: "config/cels.anl.gov.yaml"
 
-# FLU outbreak config
+# FLU H5N1 outbreak config - segmented virus!
 configfile: "config/flu-h5n1.yaml"
 
 print("Loaded configs:")
-print("\tSFTP.server=",config['sftp']['server'])
+print("\tFTP.server=",config['ftp']['server'])
 print("\tFamily=",config['family'])
 
 # download cache
@@ -42,6 +42,7 @@ METADATA_ERROR_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.removed.txt"
 BULK_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.fna"
 BULK_ID_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.genome_id.fna"
 
+GENOMES_MISSING_HIST=f"{DATA_CACHE_DIR}/BVBRC_genome_id.date_modified.hist.txt"
 GENOMES_MISSING_SEQ=f"{DATA_CACHE_DIR}/BVBRC_genome_id.missing_seq.txt"
 MISSING_CONTIG_TSV=f"{DATA_CACHE_DIR}/missing_contigs_download.tsv"
 
@@ -98,9 +99,9 @@ rule bulk_fna_download:
     output:
         fna_path=BULK_FNA_FILE
     params:
-        user = config["sftp"]["user"],
-        server = config["sftp"]["server"],
-        virus_dir = config["sftp"]["virus_dir"],
+        user = config["ftp"]["user"],
+        server = config["ftp"]["server"],
+        virus_dir = config["ftp"]["virus_dir"],
         fna_name = f"{config['family']}.fna"
     # force Snakemake to always try and pull
     #always_run: True
@@ -228,8 +229,9 @@ rule dedup_metadata_qc_report:
 # ----------------------------------------------------------------------
 rule missing:
     input:
-        list=GENOMES_MISSING_SEQ
-        
+        list=GENOMES_MISSING_SEQ,
+        hist=GENOMES_MISSING_HIST
+
 rule list_genomes_missing_sequence:
     output:
         list=GENOMES_MISSING_SEQ
@@ -243,6 +245,26 @@ rule list_genomes_missing_sequence:
         "  <(p3-extract -i {input.metadata} genome_id | tail -n +2 | sort) "
         "  <(cut -f 1 {input.bulk_fna_fai_path} | sort) "
         ">> {output.list}"
+
+rule missing_sequence_date_histogram:
+    input:
+        download_id_list=GENOMES_MISSING_SEQ,
+        metadata=METADATA_FILE
+    output:
+        hist=GENOMES_MISSING_HIST
+    shell:
+        # header
+        "echo '  count date_modified/day' > {output.hist}"
+        " && "
+        # get genome_id,date_modified for missing seq genome"
+        "grep -w -f <(tail -n +2 {input.download_id_list}) <(cut -f 1-2 {input.metadata} ) "
+        # extact just date_modified
+        " | cut -f 2 "
+        # extract just YYYY-MM-DD
+        " | cut -c 1-10 "
+        # histogram the dates
+        " | sort | uniq -c "
+        " >> {output.hist} "
         
 rule delta:
     input:

@@ -3,20 +3,39 @@
 # Flu H5N1 outbreak tree config
 #
 
+# ----------------------------------------------------------------------
+#
+# taxonomy
+#
+# ----------------------------------------------------------------------
+
+# family is used for both
+#     FTP bulk downloads
+# AND
+#     filtering metadata taxonomy
+#
 family: Orthomyxoviridae
 
+#
+# addtiional taxonomic or metadata filters
+#
 p3_genome_filters: "--eq 'subtype,H5N1' --in 'collection_year,2024,2025,2026' --in 'genome_status,Complete,Partial'"
 
 
-# Christian's original code
+#
+# ---- NOTES ON BV-BRC TAXONOMY ----
+# Current outbreak tree protocol 
 # query for
 #     taxon_id=11320 & subtype=H5N1
 # however, we get the same set of genomes if we do
 #     family=Orthomyxoviridae & subtype=H5N1
 #
+# BV-BRC Taxonomy:
 # Negarnaviricota; Insthoviricetes; Articulavirales; Orthomyxoviridae; Alphainfluenzavirus; Alphainfluenzavirus influenzae; Influenza A virus
+#      ID taxon_name
 #   11308 Orthomyxoviridae [family]
 #  197911 Alphainfluenzavirus [genus]
 # 2955291 Alphainfluenzavirus influenzae [species]
 #   11320 Influenza A virus [no rank]
-#taxon_lineage_ids: 11320 
+#
+# -eq "taxon_lineage_ids,11320"

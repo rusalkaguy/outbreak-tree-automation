@@ -1,0 +1,33 @@
+# YAML
+# ----------------------------------------------------------------------
+# RUNTIME ENVIRONMENT
+#
+# HOST: *.cels.anl.gov
+# SERVER: ftp.bv-brc.org
+# ----------------------------------------------------------------------
+
+
+# ----------------------------------------------------------------------
+# Bulk FNA download from BV-BRC's FTP server on an ANL.gov machine
+#
+# We will be downloading {virus_dir}/{familiy}.fna
+#
+# ----------------------------------------------------------------------
+# https://www.bv-brc.org/docs/quick_references/ftp.html
+# NOTE: this is actually an FTPS server
+ftp:
+  server: ftp://ftp.bv-brc.org
+  virus_dir: viruses
+  user: anonymous:guest
+
+# ----------------------------------------------------------------------
+# command & SIF paths
+#
+# We include the "singularity exec" in the "sif" string, so that in environments
+# where the commands (such as samtools) are locally installed, we can set
+# sif="" and the command runs locally. 
+#
+# ----------------------------------------------------------------------
+# standard NGS tools Singularity image
+sif: singularity exec /vol/patric3/production/containers/ubuntu-dev-160-build12-2.sif
+
