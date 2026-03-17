@@ -17,10 +17,14 @@ To Run on a CELS machine at anl.gov:
 # set up environment
 source /vol/patric3/cli/user-env.sh
 
+# clone repo
+git clone git@github.com:rusalkaguy/outbreak-tree-automation.git
+cd outbreak-tree-automation
+
 # clean caches and outputs
 snakemake --cores 1 clean
 
-# downlaod and build
+# downlaod and build default
 #   ~30 minute runtime for config/flu-h5n1.yaml
 #   ./config/flu-h5n1.yaml
 #       family=Orthomyxoviridae
