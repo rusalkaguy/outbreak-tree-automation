@@ -37,6 +37,7 @@ DATA_CACHE_DIR="bv-brc-cache"
 
 METADATA_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.txt"
 METADATA_COLLAPSED_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.collapsed.txt"
+METADATA_ERROR_FILE=f"{DATA_CACHE_DIR}/BVBRC_genome.removed.txt"
 
 BULK_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.fna"
 BULK_ID_FNA_FILE=f"{DATA_CACHE_DIR}/{config['family']}.genome_id.fna"
@@ -154,7 +155,8 @@ rule bulk_fna_faidx:
 rule metadata:
     input:
         raw=METADATA_FILE,
-        dedup=METADATA_COLLAPSED_FILE
+        dedup=METADATA_COLLAPSED_FILE,
+        error_report=METADATA_ERROR_FILE
 
     
 rule download_family_metadata:
@@ -189,7 +191,31 @@ rule dedup_metadata:
         script="scripts/collapse_bvbrc_genome_by_accession.py"
     shell:
         "{input.script} {input.metadata} {output.metadata}"
-        
+
+#
+# dump a report of removed (duplicate) genome_id's
+#
+rule dedup_metadata_qc_report:
+    output:
+        report=METADATA_ERROR_FILE
+    input:
+        orig=METADATA_FILE,
+        fixed=METADATA_COLLAPSED_FILE
+    shell:
+        # headers
+        "head -1 {input.orig} > {output}"
+        " && " 
+        # data
+        "join -v1 -t $'\t' "
+        "  <(tail -n +2 {input.orig} | sort -k1,1)"
+        "  <(cut -f 1 {input.fixed} | tail -n +2 | sort -k1,1) "
+        ">> {output.report}"
+        " && "
+        # stats during snake run
+        "wc -l {input.orig} "
+        " && "
+        "wc -l {input.fixed} {output}"
+
 
 # ----------------------------------------------------------------------
 #
