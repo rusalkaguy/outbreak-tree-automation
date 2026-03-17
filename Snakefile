@@ -32,14 +32,6 @@ configfile: ENV_CONFIG
 TAX_CONFIG="config/flu-h5n1.yaml"
 configfile: TAX_CONFIG
 
-print("Loaded configs:")
-print("    # RUNTIME ENV ------")
-print("    FTP.server=",f"{config['ftp']['user']}@{config['ftp']['server']}:/{config['ftp']['virus_dir']}")
-print("    sif=",config['sif'])
-print("    # TAXONOMY ---------")
-print("    Family=",config['family'])
-print("    p3_genome_filters=",config['p3_genome_filters'])
-
 # download cache
 DATA_CACHE_DIR="bv-brc-cache"
 
@@ -54,11 +46,22 @@ GENOMES_MISSING_HIST=f"{DATA_CACHE_DIR}/BVBRC_genome_id.date_modified.hist.txt"
 GENOMES_MISSING_SEQ=f"{DATA_CACHE_DIR}/BVBRC_genome_id.missing_seq.txt"
 MISSING_CONTIG_TSV=f"{DATA_CACHE_DIR}/missing_contigs_download.tsv"
 
+print("Loaded configs:")
+print("    # Snakefile settings")
+print("    DATA_CACHE_DIR=",DATA_CACHE_DIR)
+print("    # RUNTIME ENV ------")
+print("    FTP.server=",f"{config['ftp']['user']}@{config['ftp']['server']}:/{config['ftp']['virus_dir']}")
+print("    sif=",config['sif'])
+print("    # TAXONOMY ---------")
+print("    Family=",config['family'])
+print("    p3_genome_filters=",config['p3_genome_filters'])
+
 localrules: help
 rule help:
     run:
         print("Targets:")
         print("    help - list targets")
+        print("    clean - delete all downloads and outputs")
         print("    metadata - CLI download genome list/metadata")
         print("    bulk - ftp bulk sequence download")
         print("    missing - build list of missing sequences")
