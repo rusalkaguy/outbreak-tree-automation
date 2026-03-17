@@ -19,7 +19,7 @@ family: Orthomyxoviridae
 #
 # addtiional taxonomic or metadata filters
 #
-p3_genome_filters: "--eq 'subtype,H5N1' --in 'collection_year,2024,2025,2026' --in 'genome_status,Complete,Partial'"
+p3_genome_filters: --eq 'subtype,H5N1' --in 'collection_year,2024,2025,2026' --in 'genome_status,Complete,Partial'
 
 
 #
